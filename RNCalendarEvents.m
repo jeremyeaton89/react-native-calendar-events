@@ -168,15 +168,17 @@ RCT_EXPORT_MODULE()
 
 -(void)saveEvent:(EKEvent *)calendarEvent
 {
-    NSError *error = nil;
-    BOOL success = [self.eventStore saveEvent:calendarEvent span:EKSpanFutureEvents commit:YES error:&error];
-    if (!success) {
-        [self.bridge.eventDispatcher sendAppEventWithName:@"eventSaveError"
-                                                     body:@{@"error": [error.userInfo valueForKey:@"NSLocalizedDescription"]}];
-    } else {
-        [self.bridge.eventDispatcher sendAppEventWithName:@"eventSaveSuccess"
-                                                     body:calendarEvent.calendarItemIdentifier];
-    }
+    dispatch_sync(dispatch_get_main_queue(), ^{
+        NSError *error = nil;
+        BOOL success = [self.eventStore saveEvent:calendarEvent span:EKSpanFutureEvents commit:YES error:&error];
+        if (!success) {
+            [self.bridge.eventDispatcher sendAppEventWithName:@"eventSaveError"
+                                                         body:@{@"error": [error.userInfo valueForKey:@"NSLocalizedDescription"]}];
+        } else {
+            [self.bridge.eventDispatcher sendAppEventWithName:@"eventSaveSuccess"
+                                                         body:calendarEvent.calendarItemIdentifier];
+        }
+    });
 }
 
 
